@@ -1,0 +1,23 @@
+{
+  "name": "ytjs",
+  "version": "1.0.0",
+  "description": "youtube downloader",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron src/main.js"
+  },
+  "author": "david",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^10.0.1"
+  },
+  "dependencies": {
+    "bluebird": "^3.7.2",
+    "discord-rich-presence": "0.0.8",
+    "dotenv": "^8.2.0",
+    "electron-reload": "^1.5.0",
+    "node-fetch": "^2.6.0",
+    "sqlite3": "^5.0.0",
+    "ytdl-core": "^3.2.2"
+  }
+}
