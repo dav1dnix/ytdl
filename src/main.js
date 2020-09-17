@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, Notification } = require("electron");
 require("electron-reload")(__dirname);
 
-const { createWriteStream } = require("fs");
+const { createWriteStream, existsSync } = require("fs");
 const ytdl = require("ytdl-core");
 
 const p = require("./drpc");
@@ -10,6 +10,8 @@ p.presence
 
 const database = require("./db");
 const db = database.db;
+
+const { exec } = require("child_process");
 
 const options = {
     width: 800,
@@ -47,18 +49,8 @@ app.on("activate", () => {
     };
 });
 
-// Receive from index.html
 ipcMain.on("download_mp4", (event, arg) => {
-   try {
-       ytdl(arg).pipe(createWriteStream("video.mp4"))
-   } catch (error) {
-       console.error("Invalid URL", error);
-   };
-});
-
-ipcMain.on("download_mp3", (event, arg) => {
     try {
-        // Async always returns a promise. async/await syntax allows for working with promises more comfortably.
         const title = ytdl.getInfo(arg).then((info) => {
             // Put execution mode into serialized, this means that at most only one statement obj can execute at a time.
             // Other statements wait in a queue until previous statements are executed.
@@ -74,11 +66,25 @@ ipcMain.on("download_mp3", (event, arg) => {
         });
 
         title.then((t) => {
-            ytdl(arg, {
-                filter: "audioonly"
-            }).pipe(createWriteStream(`${t}.mp3`));
+            ytdl(arg).pipe(createWriteStream(`${t.split(" ").join("")}.mp4`))
         });
+
     } catch (error) {
         console.error("Invalid URL", error)
     };
 });
+
+ipcMain.on("converttomp3", (event, arg) => {
+    // After downloading, get video name from title. If video exists, convert video to mp3 using ffmpeg.
+    // This will allow mp3 to actually work on macOS, it is not working with ytdl, really not sure why.
+    if (existsSync(arg)) {
+        exec(`ffmpeg -i ${arg} ${arg.split(".")[0]}.mp3`, (error, stdout, stderr) => {
+        if (error) {
+            console.log(error + error.code)
+                return;
+            }
+            console.log(stdout)
+            console.log(stderr)
+        })
+    }
+})
